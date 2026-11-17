@@ -6,8 +6,8 @@ This example provisions an MSSQL instance using backup, labels, and timeouts.
 
 - Backup protection plan
 - Labels and encryption flags
-- Security group CIDR allow list
-- Resource timeouts
+- Network access with `vpc`, `subnet`, and `custom_cidr` together
+- Resource timeouts (provider default is 30 minutes; create typically takes about 14)
 
 ## Files
 
@@ -53,4 +53,5 @@ terraform destroy
 - `protection_plan` must match a name from the netbackup catalog.
 - Adjust flavor, zone, CIDRs, edition, and collation to match your environment.
 - Configuration changes force a new instance.
-- `vpc` and `subnet` are stored in state and are not sent to the API.
+- `vpc` and `subnet` must be set together. Their names are not sent on create; the subnet CIDR is sent as an allowed IP, along with any `custom_cidr`.
+- Remove `vpc`, `subnet`, or `custom_cidr` if you only need one network option.

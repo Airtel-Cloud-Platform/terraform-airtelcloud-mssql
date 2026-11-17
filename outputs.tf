@@ -50,13 +50,18 @@ output "connection_string" {
 }
 
 output "vpc" {
-  description = "VPC name stored for later use."
+  description = "VPC name from the configuration. Null when only custom_cidr is used, and after import."
   value       = airtelcloud_mssql.this.vpc
 }
 
 output "subnet" {
-  description = "Subnet name stored for later use."
+  description = "Subnet name from the configuration. Null when only custom_cidr is used, and after import."
   value       = airtelcloud_mssql.this.subnet
+}
+
+output "custom_cidr" {
+  description = "Custom CIDR blocks from the configuration, including any from the deprecated security_group. Null when none are set."
+  value       = airtelcloud_mssql.this.custom_cidr
 }
 
 output "mssql" {
@@ -75,5 +80,6 @@ output "mssql" {
     connection_string = airtelcloud_mssql.this.connection_string
     vpc               = airtelcloud_mssql.this.vpc
     subnet            = airtelcloud_mssql.this.subnet
+    custom_cidr       = airtelcloud_mssql.this.custom_cidr
   }
 }
