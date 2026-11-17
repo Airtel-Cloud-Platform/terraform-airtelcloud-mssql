@@ -5,8 +5,8 @@ This example provisions an MSSQL instance using the module from the repository r
 ## What This Example Shows
 
 - Single instance creation
-- Required edition, collation, flavor, storage, zone, VPC, and subnet
-- Security group CIDR allow list
+- Required edition, collation, flavor, storage, and zone
+- Network access with `custom_cidr` only, no `vpc` or `subnet`
 - Minimal optional inputs
 
 ## Files

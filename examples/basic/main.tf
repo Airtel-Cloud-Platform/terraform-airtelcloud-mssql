@@ -2,7 +2,7 @@ terraform {
   required_providers {
     airtelcloud = {
       source  = "Airtel-Cloud-Platform/airtelcloud"
-      # version = ">= 1.2.6"
+      version = ">= 1.2.9"
     }
   }
 }
@@ -16,6 +16,7 @@ provider "airtelcloud" {
   project_name = var.project_name
 }
 
+# Network access by custom CIDR only. vpc and subnet are not needed.
 module "mssql" {
   source = "../../"
 
@@ -26,13 +27,9 @@ module "mssql" {
   compute_size      = "db.mssqlweb.uhper.cci.xlarge"
   storage_size      = 200
   availability_zone = "S1"
-  vpc               = "copper-vpc1"
-  subnet            = "vlan-dbaas-91"
   db_name           = "AppDb"
   mssql_username    = "DbAdmin"
   password          = var.mssql_password
 
-  security_group = {
-    allowed_ips = ["192.168.1.0/24"]
-  }
+  custom_cidr = ["192.168.1.0/24"]
 }

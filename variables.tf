@@ -3,12 +3,17 @@
 #########################################
 
 variable "name" {
-  description = "Instance name. Forces a new resource."
+  description = "Instance name. Lowercase letters, digits, and hyphens only, at most 14 characters (the API rejects longer names). Forces a new resource."
   type        = string
 
   validation {
     condition     = can(regex("^[a-z0-9-]+$", var.name))
     error_message = "name must contain only lowercase letters, digits, and hyphens."
+  }
+
+  validation {
+    condition     = length(var.name) <= 14
+    error_message = "name can have at most 14 characters."
   }
 }
 
@@ -128,23 +133,52 @@ variable "availability_zone" {
   }
 }
 
+#########################################
+# Network access
+#
+# Set custom_cidr, or vpc and subnet together, or both.
+# The subnet CIDR is resolved by the provider and sent as an allowed IP.
+# vpc and subnet names themselves are not sent on create.
+#########################################
+
 variable "vpc" {
-  description = "VPC name stored for later use. Not sent to the API. Forces a new resource."
+  description = "VPC name used to resolve subnet. Required together with subnet when custom_cidr is omitted. Not sent on create. Forces a new resource."
   type        = string
+  default     = null
 
   validation {
-    condition     = length(trim(var.vpc, " ")) > 0
-    error_message = "vpc cannot be empty."
+    condition     = var.vpc == null || length(trim(var.vpc, " ")) > 0
+    error_message = "vpc cannot be empty when set."
   }
 }
 
 variable "subnet" {
-  description = "Subnet name stored for later use. Not sent to the API. Forces a new resource."
+  description = "Subnet name within vpc. Required together with vpc when custom_cidr is omitted. Its CIDR is sent as an allowed IP. Not sent on create. Forces a new resource."
   type        = string
+  default     = null
 
   validation {
-    condition     = length(trim(var.subnet, " ")) > 0
-    error_message = "subnet cannot be empty."
+    condition     = var.subnet == null || length(trim(var.subnet, " ")) > 0
+    error_message = "subnet cannot be empty when set."
+  }
+}
+
+variable "custom_cidr" {
+  description = "Custom CIDR blocks allowed to connect, sent as security_group.allowed_ips. Use instead of vpc and subnet, or together with them. Forces a new resource."
+  type        = list(string)
+  default     = null
+
+  validation {
+    condition     = var.custom_cidr == null || length(var.custom_cidr) > 0
+    error_message = "custom_cidr must contain at least one CIDR when set."
+  }
+
+  validation {
+    condition = (
+      var.custom_cidr == null ||
+      alltrue([for cidr in var.custom_cidr : can(cidrhost(cidr, 0))])
+    )
+    error_message = "custom_cidr values must be valid CIDR blocks such as 192.168.1.0/24."
   }
 }
 
@@ -171,7 +205,7 @@ variable "advanced_settings_enabled" {
 }
 
 variable "security_group" {
-  description = "Allowed client CIDRs. Omit to leave security_group unset. Forces a new resource."
+  description = "Deprecated: use custom_cidr. Allowed client CIDRs; merged into custom_cidr. Forces a new resource."
 
   type = object({
     allowed_ips = list(string)
@@ -211,7 +245,7 @@ variable "backup" {
 }
 
 variable "timeouts" {
-  description = "Create and delete timeouts for the MSSQL instance."
+  description = "Create and delete timeouts for the MSSQL instance, for example { create = \"45m\", delete = \"45m\" }. Provider default is 30 minutes each. Create typically takes about 14 minutes."
 
   type = object({
     create = optional(string)
